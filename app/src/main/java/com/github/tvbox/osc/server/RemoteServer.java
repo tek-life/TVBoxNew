@@ -273,7 +273,7 @@ public class RemoteServer extends NanoHTTPD {
             okhttp3.ResponseBody body = upstream.body();
             if (body == null) {
                 upstream.close();
-                return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_GATEWAY,
+                return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR,
                         NanoHTTPD.MIME_PLAINTEXT, "upstream empty body");
             }
 
@@ -309,7 +309,7 @@ public class RemoteServer extends NanoHTTPD {
             if (status == null) {
                 status = upstream.isSuccessful()
                         ? NanoHTTPD.Response.Status.OK
-                        : NanoHTTPD.Response.Status.BAD_GATEWAY;
+                        : NanoHTTPD.Response.Status.INTERNAL_ERROR;
             }
             Response proxyResponse = NanoHTTPD.newChunkedResponse(status, mime, stream);
             String contentLength = upstream.header("Content-Length");
