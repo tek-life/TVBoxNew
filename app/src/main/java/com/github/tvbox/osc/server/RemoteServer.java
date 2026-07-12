@@ -53,6 +53,17 @@ import fi.iki.elonen.NanoHTTPD;
  * @description:
  */
 public class RemoteServer extends NanoHTTPD {
+    private static final Response.IStatus BAD_GATEWAY_STATUS = new Response.IStatus() {
+        @Override
+        public String getDescription() {
+            return "502 Bad Gateway";
+        }
+
+        @Override
+        public int getRequestStatus() {
+            return 502;
+        }
+    };
     private Context mContext;
     public static int serverPort = 9978;
     private boolean isStarted = false;
@@ -273,7 +284,7 @@ public class RemoteServer extends NanoHTTPD {
             okhttp3.ResponseBody body = upstream.body();
             if (body == null) {
                 upstream.close();
-                return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.SERVICE_UNAVAILABLE,
+                return NanoHTTPD.newFixedLengthResponse(BAD_GATEWAY_STATUS,
                         NanoHTTPD.MIME_PLAINTEXT, "upstream empty body");
             }
 
@@ -305,11 +316,11 @@ public class RemoteServer extends NanoHTTPD {
                 }
             };
             String mime = body.contentType() != null ? body.contentType().toString() : "application/octet-stream";
-            NanoHTTPD.Response.Status status = NanoHTTPD.Response.Status.lookup(upstream.code());
+            Response.IStatus status = NanoHTTPD.Response.Status.lookup(upstream.code());
             if (status == null) {
                 status = upstream.isSuccessful()
                         ? NanoHTTPD.Response.Status.OK
-                        : NanoHTTPD.Response.Status.SERVICE_UNAVAILABLE;
+                        : BAD_GATEWAY_STATUS;
             }
             Response proxyResponse = NanoHTTPD.newChunkedResponse(status, mime, stream);
             String contentLength = upstream.header("Content-Length");
